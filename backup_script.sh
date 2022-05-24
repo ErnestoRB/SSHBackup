@@ -14,17 +14,19 @@ config="/etc/ssh-backup/config"
 if [ ! -e $config ]; then
     echo "user=root" >$config
     echo "host=localhost" >>$config
+    echo "folder=/var/www" >>$config
 fi
 
 user=$( cat $config | awk -F"=" '/=/ && $1 == "user" { echo $2 }' )
 host=$( cat $config | awk -F"=" '/=/ && $1 == "host" { echo $2 }' )
+folder=$( cat $config | awk -F"=" '/=/ && $1 == "folder" { echo $2 }' )
 
-tar -cvzf /tmp/respaldo.tar.gz /var/www
+tar -cvzf /tmp/respaldo.tar.gz $folder
 i=1
 false
 while [ $? -ne 0 -o $i -eq 10 ]; do
     let i++
-    scp respaldo.tar.gz ${user:-root}@${host:-localhost}:~
+    scp /tmp/respaldo.tar.gz ${user:-root}@${host:-localhost}:~
 done
 if [ $i -eq 10]; then
     echo "No se pudo hacer el respaldo a ${user}@${host}... ¿Probablemente esté caído?"

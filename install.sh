@@ -1,3 +1,5 @@
+#!/bin/bash
+
 folder="/etc/ssh-backup"
 config="/etc/ssh-backup/config"
 
@@ -7,14 +9,15 @@ config="/etc/ssh-backup/config"
 # fi
 
 echo "A continuación se pedirá acceso root para la creación de configuración"
-if [ ! -d $folder]; then
+if [ ! -d $folder ]; then
     sudo mkdir -p $folder
     sudo touch $config
-    sudo chmod o=rwx $config
+    sudo chmod =rwx $config
 fi
 
+echo "Consultando si existe clave ssh (id_rsa) disponible..."
 if [ ! -e ~/.ssh/id_rsa ]; then
-    echo "Creando clave rsa"
+    echo "Clave no encontrada, creando clave rsa..."
     ssh-keygen -f ~/.ssh/id_rsa -P ""
     if [ $? -eq 0 ]; then
         echo "Hecho."
@@ -24,11 +27,17 @@ if [ ! -e ~/.ssh/id_rsa ]; then
     fi
 fi
 
-echo "Por favor, ingresa el usuario del servidor"
+echo "A continuación se pedirán datos de conexión al servidor al cual se piensa hacer el respaldo"
+echo -n "Usuario: "
 read user
-echo "Ahora ingresa el host del servidor"
+echo -n "Host:"
 read host
 
-ssh-copy-id -i ~/.ssh/id_rsa.pub ${user}@${host}
-
-
+echo "A continuación se intentará copiar la clave"
+ssh-copy-id -i ~/.ssh/id_rsa.pub ${user}@${host} # copiar clave publica a servidor
+if [ $? -ne 0 ]; then
+    echo "Error. Comprueba los datos del servidor"
+    exit 1
+fi
+echo -e "user=${user}\nhost=${host}" >$config
+echo "Ok, confugración creada"
