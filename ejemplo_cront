@@ -1,1 +1,1 @@
-*/10 * * * * /usr/bin/backup_script.sh
+*/10 * * * * /usr/bin/backup_script.sh >&/var/log/ssh-backup/log
