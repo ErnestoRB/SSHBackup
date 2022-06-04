@@ -4,10 +4,6 @@ folder="/etc/ssh-backup"
 config="/etc/ssh-backup/config"
 log="/var/log/ssh-backup/log"
 
-# if [ $(id -u) -ne 1 ]; then
-#    echo "Se ocupan permisos de root"
-#    exit 1
-# fi
 . logUtils.sh
 
 if [ ! -d $folder ]; then
@@ -58,7 +54,7 @@ if [ $? -ne 0 ]; then
     logError "Error. Comprueba los datos del servidor"
     exit 1
 fi
-echo -e "user=${user}\nhost=${host}\nfolder=${folder}" >$config && logSuccess "Ok, configración creada"
+echo -e "user=${user}\nhost=${host}\nfolder=${folder}" >$config && logSuccess "Ok, configuración creada"
 if [[ $? -ne 0 || -z $(crontab -l | grep backup_script.sh) ]]; then
     echo "Intentado crear crontab..."
     (cat ejemplo_cront; crontab -l) | crontab
