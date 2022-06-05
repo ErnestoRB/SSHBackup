@@ -14,11 +14,15 @@ fi
 if [ ! -w $config ]; then
     logWarn "Se necesita permisos para editar $config"
     sudo chmod ugo=rwx $config && logSuccess "Hecho"
+else
+    chmod ugo=rwx $config && logSuccess "Hecho"
 fi
 
 if [ ! -w /usr/bin ]; then
     logWarn "Se necesitan permisos para copiar script en /usr/bin"
     (sudo cp backup_script.sh /usr/bin; sudo chmod o=rwx /usr/bin/backup_script.sh) && logSuccess "Hecho"
+else 
+    cp backup_script.sh /usr/bin; sudo chmod o=rwx /usr/bin/backup_script.sh && logSuccess "Hecho"
 fi
 
 if [ ! -e $log ]; then

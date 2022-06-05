@@ -27,7 +27,7 @@ then
     exit 1
 fi
 tar -czf "/tmp/respaldo${fecha}.tar.gz" $folder
-if scp -o ConnectTimeout=1 -o ConnectionAttempts=5 "/tmp/respaldo${fecha}.tar.gz"  ${user:-root}@${host:-localhost}
+if scp -o ConnectTimeout=1 -o ConnectionAttempts=5 "/tmp/respaldo${fecha}.tar.gz"  scp://${user:-root}@${host:-localhost}
 then
     log "Respaldo hecho ${user}@${host}: $fecha"
     rm "/tmp/respaldo${fecha}.tar.gz"
