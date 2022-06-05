@@ -20,12 +20,17 @@ fi
 user=$( cat $config | awk -F"=" '/=/ && $1 == "user" { print $2 }' )
 host=$( cat $config | awk -F"=" '/=/ && $1 == "host" { print $2 }' )
 folder=$( cat $config | awk -F"=" '/=/ && $1 == "folder" { print $2 }' )
-tar -czf /tmp/respaldo.tar.gz $folder
 fecha=$(date +"%d-%m-%y_%H-%M")
-if scp /tmp/respaldo.tar.gz -o ConnectTimeout=1 -o ConnectionAttempts=5 ${user:-root}@${host:-localhost}:~/"respaldo${fecha}.tar.gz"
+if [ ! -e $folder ];
+then
+    logError "No se pudo hacer el respaldo ya que la carpeta a respaldar (${folder}) no existe!"
+    exit 1
+fi
+tar -czf "/tmp/respaldo${fecha}.tar.gz" $folder
+if scp -o ConnectTimeout=1 -o ConnectionAttempts=5 "/tmp/respaldo${fecha}.tar.gz"  ${user:-root}@${host:-localhost}
 then
     log "Respaldo hecho ${user}@${host}: $fecha"
-    rm /tmp/respaldo.tar.gz
+    rm "/tmp/respaldo${fecha}.tar.gz"
 else
     logError "No se pudo hacer el respaldo a ${user}@${host}... ¿Probablemente esté caído?"
 fi
