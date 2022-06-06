@@ -10,16 +10,23 @@ logError() {
 }
 
 config="/etc/ssh-backup/config"
+
 if [ ! -e $config ]; then
-    echo "user=root" >$config
-    echo "host=localhost" >>$config
-    echo "folder=/var/www" >>$config
-    log "Archivo de configuracion creado"
+    if [ -w $(dirname $config) ]; then
+        echo "user=root" >$config && echo "host=localhost" >>$config && echo "folder=/var/www" >>$config && log "Archivo de configuracion creado"
+    else
+        logError "No se tienen permisos de escritura sobre el folder $(dirname $config). No se creará archivo de configuración"
+    fi
+    logError "Se usarán los valores por defecto (user=root, host=localhost, folder=/var/www/)"
+    user="root"
+    host="localhost"
+    folder="/var/www/"
+else # leer desde configuracion
+    user=$( cat $config | awk -F"=" '/=/ && $1 == "user" { print $2 }' )
+    host=$( cat $config | awk -F"=" '/=/ && $1 == "host" { print $2 }' )
+    folder=$( cat $config | awk -F"=" '/=/ && $1 == "folder" { print $2 }' )
 fi
-    
-user=$( cat $config | awk -F"=" '/=/ && $1 == "user" { print $2 }' )
-host=$( cat $config | awk -F"=" '/=/ && $1 == "host" { print $2 }' )
-folder=$( cat $config | awk -F"=" '/=/ && $1 == "folder" { print $2 }' )
+
 fecha=$(date +"%d-%m-%y_%H-%M")
 if [ ! -e $folder ];
 then
@@ -27,7 +34,7 @@ then
     exit 1
 fi
 tar -czf "/tmp/respaldo${fecha}.tar.gz" $folder
-if scp -o ConnectTimeout=1 -o ConnectionAttempts=5 "/tmp/respaldo${fecha}.tar.gz"  scp://${user:-root}@${host:-localhost}
+if scp -o ConnectTimeout=1 -o ConnectionAttempts=5 "/tmp/respaldo${fecha}.tar.gz"  scp://${user}@${host}
 then
     log "Respaldo hecho ${user}@${host}: $fecha"
     rm "/tmp/respaldo${fecha}.tar.gz"
