@@ -11,11 +11,14 @@ if [ ! -d $folder ]; then
     (sudo mkdir -p $folder;sudo touch $config) && logSuccess "Hecho"
 fi
 
+if [ ! -e $config ]; then
+    logWarn "Se necesitan permisos para crear $config" 
+    sudo touch $config && logSuccess "Hecho"
+fi
+
 if [ ! -w $config ]; then
     logWarn "Se necesita permisos para editar $config"
     sudo chmod ugo=rwx $config && logSuccess "Hecho"
-else
-    chmod ugo=rwx $config && logSuccess "Hecho"
 fi
 
 if [ ! -w /usr/bin ]; then
@@ -52,14 +55,16 @@ read host
 echo -ne "\e[1;1mQue carpeta de este equipo deseas respaldar? \e[0m"
 read folder
 
+echo -e "user=${user}\nhost=${host}\nfolder=${folder}" >$config && logSuccess "Ok, configuración creada"
+
 echo "A continuación se intentará copiar la clave"
 ssh-copy-id -i ~/.ssh/id_rsa.pub ${user}@${host} -o ConnectTimeout=5 # copiar clave publica a servidor
-if [ $? -ne 0 ]; then
+sshStatus=$?
+if [ $sshStatus -ne 0 ]; then
     logError "Error. Comprueba los datos del servidor"
     exit 1
 fi
-echo -e "user=${user}\nhost=${host}\nfolder=${folder}" >$config && logSuccess "Ok, configuración creada"
-if [[ $? -ne 0 || -z $(crontab -l | grep backup_script.sh) ]]; then
+if [[ $sshStatus -ne 0 || -z $(crontab -l | grep backup_script.sh) ]]; then
     echo "Intentado crear crontab..."
     (cat ejemplo_cront; crontab -l) | crontab
     if [ $? -eq 0 ]; then
